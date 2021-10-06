@@ -6,7 +6,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
-var Id uint = 1
+//var Id uint = 1
 
 type Order struct {
 	gorm.Model
