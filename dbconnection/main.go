@@ -37,7 +37,8 @@ func main() {
 	c := customer.New(fname, lname, age, &ismale)
 	db.AutoMigrate(&customer.Customer{})
 	db.Create(c)
-	var o *order.Order
+	db.AutoMigrate(&order.Order{})
+	db.Model(&order.Order{}).AddForeignKey("customer_id", "customers(id)", "RESTRICT", "RESTRICT")
 	for {
 		var flag bool
 		fmt.Println("Dear Customer: \n Enter 1 for order \n Enter 0 for checkout")
@@ -56,8 +57,7 @@ func main() {
 			fmt.Scanln(&costPerUnit)
 			fmt.Println("Enter true or false if u paid total cost")
 			fmt.Scanln(&isPaid)
-			o = order.New(c.ID, itemName, itemDesc, quantity, costPerUnit, &isPaid)
-			db.AutoMigrate(&order.Order{})
+			o := order.New(c.ID, itemName, itemDesc, quantity, costPerUnit, &isPaid)
 			db.Create(o)
 		} else {
 			inVoice(*c, db)

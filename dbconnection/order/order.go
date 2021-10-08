@@ -10,7 +10,7 @@ import (
 
 type Order struct {
 	gorm.Model
-	CustomerID  uint
+	CustomerID  uint `sql:"type:int(10) UNSIGNED REFERENCES customers(id)"`
 	ItemName    string
 	ItemDesc    string
 	Quantity    int
