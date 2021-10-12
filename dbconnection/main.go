@@ -2,8 +2,11 @@ package main
 
 import (
 	"bufio"
+	"dbconnection/test/cart"
 	"dbconnection/test/customer"
+	"dbconnection/test/login"
 	"dbconnection/test/order"
+	"dbconnection/test/previousorder"
 	"fmt"
 	"log"
 	"os"
@@ -22,48 +25,108 @@ func main() {
 	} else {
 		log.Println("Connection Established")
 	}
-	var fname, lname, itemName, itemDesc string
-	var age, quantity int
-	var ismale, isPaid bool
-	var costPerUnit float64
-	fmt.Println("Enter the customer First name:")
-	fmt.Scanln(&fname)
-	fmt.Println("Enter the customer Last name:")
-	fmt.Scanln(&lname)
-	fmt.Println("Enter the customer Age:")
-	fmt.Scanln(&age)
-	fmt.Println("Enter true or false customer is IsMale:")
-	fmt.Scanln(&ismale)
-	c := customer.New(fname, lname, age, &ismale)
-	db.AutoMigrate(&customer.Customer{})
-	db.Create(c)
-	db.AutoMigrate(&order.Order{})
-	db.Model(&order.Order{}).AddForeignKey("customer_id", "customers(id)", "RESTRICT", "RESTRICT")
-	for {
-		var flag bool
-		fmt.Println("Dear Customer: \n Enter 1 for order \n Enter 0 for checkout")
-		fmt.Scanln(&flag)
-		if flag {
-			fmt.Println("Enter the Item name which u want to buy:")
-			fmt.Scanln(&itemName)
-			fmt.Println("Enter the Item Discription:")
-			scanner := bufio.NewScanner(os.Stdin)
-			if scanner.Scan() {
-				itemDesc = scanner.Text()
-			}
-			fmt.Println("Enter the number of qunatity u want to buy:")
-			fmt.Scanln(&quantity)
-			fmt.Println("Enter cost of per unit of  ", itemName)
-			fmt.Scanln(&costPerUnit)
-			fmt.Println("Enter true or false if u paid total cost")
-			fmt.Scanln(&isPaid)
-			o := order.New(c.ID, itemName, itemDesc, quantity, costPerUnit, &isPaid)
-			db.Create(o)
-		} else {
-			inVoice(*c, db)
-			break
-		}
+	fmt.Println("Input Type 1 or 2  \n 1. Register \n 2. Login")
+	var input int
+	var ID uint
+	var c *customer.Customer
+	fmt.Scanln(&input)
+	switch input {
+	case 1:
+		c = registerUser(db)
+		ID = login.UserLoginDetail(db)
+	case 2:
+		ID = login.UserLoginDetail(db)
+	default:
+		fmt.Println("You have inserted wrong input")
 	}
+	var itemName, itemDesc string
+	var quantity int
+	var isPaid bool
+	var costPerUnit float64
+	fmt.Println("Hello Customer \n 1. Previous order \n 2. Add Order \n 3. Cart \n 4. Exit")
+	fmt.Scanln(&input)
+	switch input {
+	case 1:
+		previousorder.PreviousOrder(db, ID)
+	case 2:
+		db.AutoMigrate(&order.Order{})
+		db.Model(&order.Order{}).AddForeignKey("customer_id", "customers(id)", "RESTRICT", "RESTRICT")
+		for {
+			var flag int
+			fmt.Println("Dear Customer: \n Enter 1 for order \n Enter 0 for checkout \n Enter 4 for exit")
+			fmt.Scanln(&flag)
+			if flag == 1 {
+				fmt.Println("Enter the Item name which u want to buy:")
+				fmt.Scanln(&itemName)
+				fmt.Println("Enter the Item Discription:")
+				scanner := bufio.NewScanner(os.Stdin)
+				if scanner.Scan() {
+					itemDesc = scanner.Text()
+				}
+				fmt.Println("Enter the number of qunatity u want to buy:")
+				fmt.Scanln(&quantity)
+				fmt.Println("Enter cost of per unit of  ", itemName)
+				fmt.Scanln(&costPerUnit)
+				fmt.Println("Enter true or false if u paid total cost")
+				fmt.Scanln(&isPaid)
+				o := order.New(c.ID, itemName, itemDesc, quantity, costPerUnit, &isPaid)
+				db.Create(o)
+			} else if flag == 0 {
+				inVoice(*c, db)
+				break
+			} else {
+				clearScreen()
+			}
+		}
+	case 3:
+		cart.Cart(db, ID)
+	case 4:
+		clearScreen()
+	default:
+		fmt.Println("You have entered wrong choice")
+	}
+	// var itemName, itemDesc string
+	// var quantity int
+	// var isPaid bool
+	// var costPerUnit float64
+	// fmt.Println("Enter the customer First name:")
+	// fmt.Scanln(&fname)
+	// fmt.Println("Enter the customer Last name:")
+	// fmt.Scanln(&lname)
+	// fmt.Println("Enter the customer Age:")
+	// fmt.Scanln(&age)
+	// fmt.Println("Enter true or false customer is IsMale:")
+	// fmt.Scanln(&ismale)
+	// c := customer.New(fname, lname, age, &ismale)
+	// db.AutoMigrate(&customer.Customer{})
+	// db.Create(c)
+	// db.AutoMigrate(&order.Order{})
+	// db.Model(&order.Order{}).AddForeignKey("customer_id", "customers(id)", "RESTRICT", "RESTRICT")
+	// for {
+	// 	var flag bool
+	// 	fmt.Println("Dear Customer: \n Enter 1 for order \n Enter 0 for checkout")
+	// 	fmt.Scanln(&flag)
+	// 	if flag {
+	// 		fmt.Println("Enter the Item name which u want to buy:")
+	// 		fmt.Scanln(&itemName)
+	// 		fmt.Println("Enter the Item Discription:")
+	// 		scanner := bufio.NewScanner(os.Stdin)
+	// 		if scanner.Scan() {
+	// 			itemDesc = scanner.Text()
+	// 		}
+	// 		fmt.Println("Enter the number of qunatity u want to buy:")
+	// 		fmt.Scanln(&quantity)
+	// 		fmt.Println("Enter cost of per unit of  ", itemName)
+	// 		fmt.Scanln(&costPerUnit)
+	// 		fmt.Println("Enter true or false if u paid total cost")
+	// 		fmt.Scanln(&isPaid)
+	// 		o := order.New(c.ID, itemName, itemDesc, quantity, costPerUnit, &isPaid)
+	// 		db.Create(o)
+	// 	} else {
+	// 		inVoice(*c, db)
+	// 		break
+	// 	}
+	// }
 	// fmt.Println("Enter the Item name which u want to buy:")
 	// fmt.Scanln(&itemName)
 	// fmt.Println("Enter the Item Discription:")
@@ -84,9 +147,7 @@ func main() {
 }
 
 func inVoice(c customer.Customer, db *gorm.DB) {
-	cl := exec.Command("cmd", "/c", "cls")
-	cl.Stdout = os.Stdout
-	cl.Run()
+	clearScreen()
 	fmt.Println("----------------------------------------------------------")
 	fmt.Println("Name    :    ", c.FName, c.LName)
 	fmt.Println("Age     :    ", c.Age)
@@ -129,4 +190,34 @@ func inVoice(c customer.Customer, db *gorm.DB) {
 	// fmt.Println("                Total Cost|       ", o.CostPerUnit*float64(o.Quantity))
 	// fmt.Println("----------------------------------------------------------")
 
+}
+
+func registerUser(db *gorm.DB) *customer.Customer {
+	var fname, lname, email string
+	var age int
+	var ismale bool
+	var password string
+	fmt.Println("Enter the customer First name:")
+	fmt.Scanln(&fname)
+	fmt.Println("Enter the customer Last name:")
+	fmt.Scanln(&lname)
+	fmt.Println("Enter the customer Age:")
+	fmt.Scanln(&age)
+	fmt.Println("Enter true or false customer is IsMale:")
+	fmt.Scanln(&ismale)
+	fmt.Println("Enter the customer email:")
+	fmt.Scanln(&email)
+	fmt.Println("Enter the customer password:")
+	fmt.Scanln(&password)
+	c := customer.New(fname, lname, age, &ismale, email, password)
+	db.AutoMigrate(&customer.Customer{})
+	db.Create(c)
+	fmt.Println("You have successfully registred")
+	return c
+}
+
+func clearScreen() {
+	cl := exec.Command("cmd", "/c", "cls")
+	cl.Stdout = os.Stdout
+	cl.Run()
 }

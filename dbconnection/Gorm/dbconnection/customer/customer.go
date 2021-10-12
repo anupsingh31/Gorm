@@ -8,22 +8,18 @@ import (
 
 type Customer struct {
 	gorm.Model
-	FName    string
-	LName    string
-	Age      int
-	IsMale   *bool
-	Email    string `gorm:"type:varchar(100);unique_index"`
-	Password string
+	FName  string
+	LName  string
+	Age    int
+	IsMale *bool
 }
 
-func New(cFName, cLName string, cAge int, cIsMale *bool, email string, password string) *Customer {
+func New(cFName, cLName string, cAge int, cIsMale *bool) *Customer {
 	return &Customer{
-		FName:    cFName,
-		LName:    cLName,
-		Age:      cAge,
-		IsMale:   cIsMale,
-		Email:    email,
-		Password: password,
+		FName:  cFName,
+		LName:  cLName,
+		Age:    cAge,
+		IsMale: cIsMale,
 	}
 }
 
